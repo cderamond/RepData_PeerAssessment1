@@ -4,13 +4,53 @@ output:
   html_document:
     keep_md: true
 ---
+------------------------------------------
+
+
+Author:  C. Deramond  
+Course:  *repdata-008* 
 
 
 ## Loading and preprocessing the data
 
+For this assignment, we initially load packages, data and make initial transformations:
+```{r}
+library(ggplot2, quietly = T, warn.conflicts = F)
+library(lubridate, quietly = T, warn.conflicts = F)
+library(dplyr, quietly = T, warn.conflicts = F)
+
+data <- read.csv("activity.csv", stringsAsFactors=FALSE) #get the data
+data$date <- ymd(data$date) # date parsing              
+
+```
 
 
 ## What is mean total number of steps taken per day?
+
+let's examine code to generate response first:
+
+```{r}
+#summary table
+data <- as.tbl(data) %>%
+        filter(!is.na(steps)) %>%
+        group_by(date) %>%
+        summarise(n = n(), total = sum(steps), mean = mean(steps), median = median(as.numeric(steps))) 
+```
+1. **histogram:**
+```{r}
+hist <- ggplot(data)
+hist + aes(total)  + 
+        geom_histogram(fill="steelblue") + 
+        ggtitle("Histogram: total steps by day") + 
+        labs(x = "Total steps")
+
+```
+
+2. **summary table:** 
+```{r echo=FALSE}
+data
+```
+
 
 
 

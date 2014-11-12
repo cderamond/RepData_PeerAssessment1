@@ -71,14 +71,16 @@ data$date &lt;- ymd(data$date) # date parsing              </code></pre>
 <h2>What is mean total number of steps taken per day?</h2>
 <p>let’s examine code to generate response first:</p>
 <pre class="r"><code>#summary table
-data &lt;- as.tbl(data) %&gt;%
+data_hist &lt;- as.tbl(data) %&gt;%
         filter(!is.na(steps)) %&gt;%
         group_by(date) %&gt;%
-        summarise(n = n(), total = sum(steps), mean = mean(steps), median = median(as.numeric(steps))) </code></pre>
+        summarise(n = n(), total = sum(steps), 
+                  mean = mean(steps), 
+                  median = median(as.numeric(steps))) </code></pre>
 <ol style="list-style-type: decimal">
 <li><strong>histogram:</strong></li>
 </ol>
-<pre class="r"><code>hist &lt;- ggplot(data)
+<pre class="r"><code>hist &lt;- ggplot(data_hist)
 hist + aes(total)  + 
         geom_histogram(fill=&quot;steelblue&quot;) + 
         ggtitle(&quot;Histogram: total steps by day&quot;) + 
@@ -147,6 +149,10 @@ hist + aes(total)  +
 </div>
 <div id="what-is-the-average-daily-activity-pattern" class="section level2">
 <h2>What is the average daily activity pattern?</h2>
+<ol style="list-style-type: decimal">
+<li><p>Make a time series plot (i.e. type = “l”) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)</p></li>
+<li><p>Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?</p></li>
+</ol>
 </div>
 <div id="imputing-missing-values" class="section level2">
 <h2>Imputing missing values</h2>

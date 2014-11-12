@@ -18,6 +18,7 @@ For this assignment, we initially load packages, data and make initial transform
 library(ggplot2, quietly = T, warn.conflicts = F)
 library(lubridate, quietly = T, warn.conflicts = F)
 library(dplyr, quietly = T, warn.conflicts = F)
+library(data.table, quietly = T, warn.conflicts = F)
 
 data <- read.csv("activity.csv", stringsAsFactors=FALSE) #get the data
 data$date <- ymd(data$date) # date parsing              
@@ -31,14 +32,18 @@ let's examine code to generate response first:
 
 ```{r}
 #summary table
-data <- as.tbl(data) %>%
+data_hist <- as.tbl(data) %>%
         filter(!is.na(steps)) %>%
         group_by(date) %>%
-        summarise(n = n(), total = sum(steps), mean = mean(steps), median = median(as.numeric(steps))) 
+        summarise(n = n(), total = sum(steps), 
+                  mean = mean(steps), 
+                  median = median(as.numeric(steps))) 
 ```
+
 1. **histogram:**
+
 ```{r}
-hist <- ggplot(data)
+hist <- ggplot(data_hist)
 hist + aes(total)  + 
         geom_histogram(fill="steelblue") + 
         ggtitle("Histogram: total steps by day") + 
@@ -47,14 +52,36 @@ hist + aes(total)  +
 ```
 
 2. **summary table:** 
+
 ```{r echo=FALSE}
-data
+data_hist
 ```
 
 
-
-
 ## What is the average daily activity pattern?
+
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r}
+data_ts <- data[!is.na(steps) , list(n = .N, total_steps = sum(steps), mean_steps = mean(steps)) , by = interval] # subset and summary variables
+
+ts <- ggplot(data = data_ts, aes(interval, mean_steps))
+# Graph the TS plus a red point with the max
+ts + geom_line() + 
+        geom_point(data = data_ts[max(mean_steps) == mean_steps,] , size = 3, col = "red") +
+        ggtitle("Average steps across days by interval")
+```
+
+
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r}
+data_ts[max(mean_steps) == mean_steps,]
+
+```
+
+this is fairly straight as shown in the graph the Interval with a value (for the average) of 
+
 
 
 

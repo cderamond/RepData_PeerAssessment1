@@ -27,15 +27,17 @@ let's examine code to generate response first:
 
 ```r
 #summary table
-data <- as.tbl(data) %>%
+data_hist <- as.tbl(data) %>%
         filter(!is.na(steps)) %>%
         group_by(date) %>%
-        summarise(n = n(), total = sum(steps), mean = mean(steps), median = median(as.numeric(steps))) 
+        summarise(n = n(), total = sum(steps), 
+                  mean = mean(steps), 
+                  median = median(as.numeric(steps))) 
 ```
 1. **histogram:**
 
 ```r
-hist <- ggplot(data)
+hist <- ggplot(data_hist)
 hist + aes(total)  + 
         geom_histogram(fill="steelblue") + 
         ggtitle("Histogram: total steps by day") + 
@@ -113,6 +115,14 @@ hist + aes(total)  +
 
 
 ## What is the average daily activity pattern?
+
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+
+
+
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
 
 
 

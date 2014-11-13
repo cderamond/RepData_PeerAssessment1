@@ -63,7 +63,11 @@ data_hist
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```{r}
-data_ts <- data[!is.na(steps) , list(n = .N, total_steps = sum(steps), mean_steps = mean(steps)) , by = interval] # subset and summary variables
+data_ts <- as.data.table(data)
+data_ts <- data_ts[!is.na(steps) , list(n = .N, 
+                                        total_steps = sum(steps), 
+                                        mean_steps = mean(steps)) , 
+                   by = interval] # subset and summary variables
 
 ts <- ggplot(data = data_ts, aes(interval, mean_steps))
 # Graph the TS plus a red point with the max
@@ -75,18 +79,64 @@ ts + geom_line() +
 
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
+this is fairly straight as shown in the graph with values:
+
+- Interval = **`r data_ts[max(mean_steps) == mean_steps, 1, with= F]`**
+
+- Average steps = **`r data_ts[max(mean_steps) == mean_steps, 2, with= F]`**
+
+
+or, as shown in the table below:
 ```{r}
 data_ts[max(mean_steps) == mean_steps,]
 
 ```
 
-this is fairly straight as shown in the graph the Interval with a value (for the average) of 
-
-
 
 
 ## Imputing missing values
 
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+the number of of NA's is `r sum(is.na(data$steps))`, as by `sum(is.na(data$steps))`
+
+
+2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+We'll use the sample mean for that specific interval. Then we validate by checking number of NA's
+
+```{r}
+data <- as.data.table(data)
+DataFixed <- left_join(data[is.na(steps),], 
+                       select(data_ts, interval, steps = total_steps), 
+                       by = "interval") %>%
+        select(steps = steps.y, 3, 1) %>%
+        arrange(date, interval)
+# we validate approach by checking number of na in this new set
+colSums(is.na(DataFixed))
+
+```
+
+
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+As the dataset is already created, now we merge:
+
+```{r}
+dataMerge <- rbind_all(list(DataFixed, data[!is.na(steps),])) %>%
+        mutate(date = ymd(date)) %>%
+        arrange(date, interval)  %>% # re-parse date and arrange by date, interval
+        print()
+```
+
+
+4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+1 .Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.

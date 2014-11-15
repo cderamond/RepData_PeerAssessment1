@@ -37,7 +37,8 @@ data_hist <- as.tbl(data) %>%
         group_by(date) %>%
         summarise(n = n(), total = sum(steps), 
                   mean = mean(steps), 
-                  median = median(as.numeric(steps))) 
+                  median = median(total)) 
+data_hist$median <- median(data_hist$total) #as sugested by TA
 ```
 
 1. **histogram:**
@@ -132,7 +133,26 @@ dataMerge <- rbind_all(list(DataFixed, data[!is.na(steps),])) %>%
 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 
+
 ```{r}
+dataMerge$setID <- "Fixed set"
+data$setID <- "Original set"
+
+dataComplete <- rbind_all(list(dataMerge, data)) %>%
+        mutate(date = ymd(date), setID = as.factor(setID)) %>%
+        arrange(setID, date, interval)
+# now on to the histogram
+hist_complete <- as.tbl(dataComplete) %>%
+        filter(!is.na(steps)) %>%
+        group_by( date, setID) %>%
+        summarise(n = n(), 
+                  total = sum(steps), 
+                  mean = mean(steps, na.rm = T), 
+                  median = median(total)) %>%
+        arrange(date, setID)
+qplot(total, data = hist_complete, 
+      facets = setID ~., 
+      main = "Total steps comparison over data sets")
 
 ```
 

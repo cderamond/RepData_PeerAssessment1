@@ -44,5 +44,28 @@ colSums(is.na(DataFixed))
 
 dataMerge <- rbind_all(list(DataFixed, data[!is.na(steps),])) %>%
         mutate(date = ymd(date)) %>%
-        arrange(date, interval) %>%
-        print(as.data.table())
+        arrange(date, interval)
+        #print(as.data.table())
+
+# 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median 
+# total number of steps taken per day. Do these values differ from the estimates from the first part of the
+# assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+# we will add a factor to identify sets before merge
+dataMerge$setID <- "Fixed set"
+data$setID <- "Original set"
+
+dataComplete <- rbind_all(list(dataMerge, data)) %>%
+        mutate(date = ymd(date), setID = as.factor(setID)) %>%
+        arrange(setID, date, interval)
+
+hist_complete <- as.tbl(dataComplete) %>%
+        filter(!is.na(steps)) %>%
+        group_by( date, setID) %>%
+        summarise(n = n(), 
+                  total = sum(steps), 
+                  mean = mean(steps, na.rm = T), 
+                  median = median(total)) %>%
+        arrange(date, setID)
+qplot(total, data = hist_complete[which(hist_complete$total > 0),], facets = setID ~.)
+

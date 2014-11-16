@@ -31,7 +31,7 @@ ts + geom_line() +
 # imputation
 
 DataFixed <- left_join(data[is.na(steps),], 
-                       select(data_ts, interval, steps = total_steps), 
+                       select(data_ts, interval, steps = mean_steps), 
                        by = "interval") %>%
         select(steps = steps.y, 3, 1) %>%
         arrange(date, interval)
@@ -59,7 +59,7 @@ dataComplete <- rbind_all(list(dataMerge, data)) %>%
         mutate(date = ymd(date), setID = as.factor(setID)) %>%
         arrange(setID, date, interval)
 
-hist_complete <- as.tbl(dataComplete) %>%
+hist_complete <- dataComplete %>%
         filter(!is.na(steps)) %>%
         group_by( date, setID) %>%
         summarise(n = n(), 
@@ -67,5 +67,8 @@ hist_complete <- as.tbl(dataComplete) %>%
                   mean = mean(steps, na.rm = T), 
                   median = median(total)) %>%
         arrange(date, setID)
-qplot(total, data = hist_complete[which(hist_complete$total > 0),], facets = setID ~.)
-
+qplot(total, data = hist_complete, fll = setID)
+# 
+qplot(total, data = hist_complete, 
+      fill = setID,
+      main = "Total steps comparison over data sets")

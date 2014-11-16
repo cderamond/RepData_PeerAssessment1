@@ -55,7 +55,8 @@ hist + aes(total)  +
 2. **summary table:** 
 
 ```{r echo=FALSE}
-data_hist
+# mean & median
+table(Mean_Total = mean(data_hist$mean), Median_Total = median(data_hist$total) )
 ```
 
 
@@ -109,7 +110,7 @@ We'll use the sample mean for that specific interval. Then we validate by checki
 ```{r}
 data <- as.data.table(data)
 DataFixed <- left_join(data[is.na(steps),], 
-                       select(data_ts, interval, steps = total_steps), 
+                       select(data_ts, interval, steps = mean_steps), 
                        by = "interval") %>%
         select(steps = steps.y, 3, 1) %>%
         arrange(date, interval)
@@ -132,7 +133,7 @@ dataMerge <- rbind_all(list(DataFixed, data[!is.na(steps),])) %>%
 
 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-
+As could be expected adding the mean on the NA's has centered the data.
 
 ```{r}
 dataMerge$setID <- "Fixed set"
@@ -142,12 +143,12 @@ dataComplete <- rbind_all(list(dataMerge, data)) %>%
         mutate(date = ymd(date), setID = as.factor(setID)) %>%
         arrange(setID, date, interval)
 # now on to the histogram
-hist_complete <- as.tbl(dataComplete) %>%
+hist_complete <- dataComplete %>%
         filter(!is.na(steps)) %>%
         group_by( date, setID) %>%
         summarise(n = n(), 
                   total = sum(steps), 
-                  mean = mean(steps, na.rm = T), 
+                  mean = mean(steps), 
                   median = median(total)) %>%
         arrange(date, setID)
 qplot(total, data = hist_complete, 
@@ -156,10 +157,36 @@ qplot(total, data = hist_complete,
 
 ```
 
+Moreover, if we compare the mean total and median, we see very insifgnificant change, thus suggesting our imputation is not effective.
+
+```{r}
+data.table(hist_complete)[, list("Mean total" = mean(mean), 
+                                 "Median total" = median(total)), 
+                          by = setID] # recalculation, coherent with initial section
+```
+
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 1 .Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
+```{r}
+data <- mutate(data, dayType = factor(ifelse(wday(date) %in% 2:6, "Weekday", "Weekend")))
+
+```
+
 
 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+```{r}
+data_ts2 <- data.table(data)
+data_ts2 <- data_ts2[!is.na(steps) , list(n = .N, 
+                                        total_steps = sum(steps), 
+                                        mean_steps = mean(steps)) , 
+                   by = list(dayType, interval)] # subset and summary variables
+# graph
+ts2 <- ggplot(data = data_ts2, aes(interval, mean_steps))
+ts2 + geom_line() + facet_grid(dayType ~.) + ggtitle("Average steps by type of day")
+```
+
+
